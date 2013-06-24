@@ -21,6 +21,12 @@ ORIGINAL LICENSE AND INFO
 
 *
 #end
+
+'version 2
+' - fixed minor typo on win8 native filename
+'version 1
+' - first commit
+
 Strict
 
 Import monkey.math
@@ -420,13 +426,14 @@ Class AES
 		Local lY8:Int
 		Local lResult:Int
 		
-		lX8 = (lX & $80000000)
-		lY8 = (lY & $80000000)
+		lX8 = (lX & -2147483648)'$80000000)
+		lY8 = (lY & - 2147483648)'$80000000)
 		lX4 = (lX & $40000000)
 		lY4 = (lY & $40000000)
 		lResult = (lX & $3FFFFFFF) + (lY & $3FFFFFFF)
 		If lX4 & lY4
-			Return lResult ~ $80000000 ~ lX8 ~ lY8
+			'Return lResult ~ $80000000 ~ lX8 ~ lY8
+			Return lResult ~ - 2147483648 ~ lX8 ~ lY8
 		EndIf
 		
 		If lX4 | lY4
