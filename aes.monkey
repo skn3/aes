@@ -823,23 +823,23 @@ Class AES
 			If d&$80=0 		
 				in+=1
 			Else If d & $E0 = $C0
-				If in + 1 > bytes.Length Throw AESException("DecodeUTF8 failed")
+				If in + 1 >= bytes.Length Throw AESException("DecodeUTF8 failed")
 				d = ( (d & $1F) Shl 6) | (bytes[in + 1] & $3F)
 				in+=2
 			Else If d & $F0 = $E0
-				If in + 2 > bytes.Length Throw AESException("DecodeUTF8 failed")
+				If in + 2 >= bytes.Length Throw AESException("DecodeUTF8 failed")
 				d=((d&$F) Shl 12) | ((bytes[in+1]&$3F)Shl 6) | (bytes[in+2]&$3F)
 				in+=3		
 			Else If d & $F8 = $F0
-				If in + 3 > bytes.Length Throw AESException("DecodeUTF8 failed")
+				If in + 3 >= bytes.Length Throw AESException("DecodeUTF8 failed")
 				d=((d&$7) Shl 18) | ((bytes[in+1]&$3F)Shl 12) | ((bytes[in+2]&$3F)Shl 6) | (bytes[in+3]&$3F)
 				in+=4			
 			Else If d & $FC = $F8
-				If in + 4 > bytes.Length Throw AESException("DecodeUTF8 failed")
+				If in + 4 >= bytes.Length Throw AESException("DecodeUTF8 failed")
 				d=((d&$3) Shl 24) | ((bytes[in+1]&$3F)Shl 18) | ((bytes[in+2]&$3F)Shl 12) | ((bytes[in+3]&$3F)Shl 6) | (bytes[in+4]&$3F)
 				in+=5					
 			Else
-				If in + 5 > bytes.Length Throw AESException("DecodeUTF8 failed")
+				If in + 5 >= bytes.Length Throw AESException("DecodeUTF8 failed")
 				d=((d&$3) Shl 30) | ((bytes[in+1]&$3F)Shl 24) | ((bytes[in+2]&$3F)Shl 18) | ((bytes[in+3]&$3F)Shl 12) | ((bytes[in+4]&$3F)Shl 6) | (bytes[in+5]&$3F)
 				in+=6							
 			Endif		
