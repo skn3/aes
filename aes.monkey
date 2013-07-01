@@ -18,16 +18,11 @@ ORIGINAL LICENSE AND INFO
 * Michel I. Gallant - http:'www.jensign.com/
 * Jean-Luc Cooke <jlcooke@certainkey.com> 2012-07-12: added strhex + invertArr to compress g2x/g3x/g9x/gbx/gex/sBox/sBoxInv/rCon saving over 7KB, and added encString, decString, also made the MD5_ routine more easlier compressible using yuicompressor.
 *
-
-'version 2
-' - fixed exception not being caught
-' - fixed string bounds on utf8decode now throws an exception
-'version 1
-' - first commit
-
-*
 #end
 
+'version 3
+' - fixed exception not being caught
+' - fixed string bounds on utf8decode now throws an exception
 'version 2
 ' - fixed minor typo on win8 native filename
 'version 1
