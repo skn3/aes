@@ -19,6 +19,12 @@ ORIGINAL LICENSE AND INFO
 * Jean-Luc Cooke <jlcooke@certainkey.com> 2012-07-12: added strhex + invertArr to compress g2x/g3x/g9x/gbx/gex/sBox/sBoxInv/rCon saving over 7KB, and added encString, decString, also made the MD5_ routine more easlier compressible using yuicompressor.
 *
 
+'version 2
+' - fixed exception not being caught
+' - fixed string bounds on utf8decode now throws an exception
+'version 1
+' - first commit
+
 *
 #end
 
@@ -821,19 +827,24 @@ Class AES
 			
 			If d&$80=0 		
 				in+=1
-			Else If d&$E0=$C0
-				d=((d&$1F)Shl 6) | (bytes[in+1]&$3F)
+			Else If d & $E0 = $C0
+				If in + 1 > bytes.Length Throw AESException("DecodeUTF8 failed")
+				d = ( (d & $1F) Shl 6) | (bytes[in + 1] & $3F)
 				in+=2
-			Else If d&$F0=$E0
+			Else If d & $F0 = $E0
+				If in + 2 > bytes.Length Throw AESException("DecodeUTF8 failed")
 				d=((d&$F) Shl 12) | ((bytes[in+1]&$3F)Shl 6) | (bytes[in+2]&$3F)
 				in+=3		
-			Else If d&$F8=$F0
+			Else If d & $F8 = $F0
+				If in + 3 > bytes.Length Throw AESException("DecodeUTF8 failed")
 				d=((d&$7) Shl 18) | ((bytes[in+1]&$3F)Shl 12) | ((bytes[in+2]&$3F)Shl 6) | (bytes[in+3]&$3F)
 				in+=4			
-			Else If d&$FC=$F8
+			Else If d & $FC = $F8
+				If in + 4 > bytes.Length Throw AESException("DecodeUTF8 failed")
 				d=((d&$3) Shl 24) | ((bytes[in+1]&$3F)Shl 18) | ((bytes[in+2]&$3F)Shl 12) | ((bytes[in+3]&$3F)Shl 6) | (bytes[in+4]&$3F)
 				in+=5					
 			Else
+				If in + 5 > bytes.Length Throw AESException("DecodeUTF8 failed")
 				d=((d&$3) Shl 30) | ((bytes[in+1]&$3F)Shl 24) | ((bytes[in+2]&$3F)Shl 18) | ((bytes[in+3]&$3F)Shl 12) | ((bytes[in+4]&$3F)Shl 6) | (bytes[in+5]&$3F)
 				in+=6							
 			Endif		
@@ -1074,26 +1085,34 @@ Class AES
 	
 	Function Encode:String(tempString:String, pass:String, binary:bool = False)
 		'string, password in plainText
-		'[83, 97, 108, 116, 101, 100, 95, 95] Spells out 'Salted__'
-		Local salt:Int[] = RandomArray(8)
-		Local keyIv:Int[][] = OpenSSLKey(S2A(pass, binary), salt)
-		Local saltBlock:Int[] = CombineArrays([83, 97, 108, 116, 101, 100, 95, 95], salt)
-		Local tempStringArray:= S2A(tempString, binary)
-		Local cipherBlocks:Int[][] = RawEncrypt(tempStringArray, keyIv[0], keyIv[1])
-		cipherBlocks = CombineArrays([saltBlock], cipherBlocks)
-		Return EncodeBase64(cipherBlocks)
+		Try
+			'[83, 97, 108, 116, 101, 100, 95, 95] Spells out 'Salted__'
+			Local salt:Int[] = RandomArray(8)
+			Local keyIv:Int[][] = OpenSSLKey(S2A(pass, binary), salt)
+			Local saltBlock:Int[] = CombineArrays([83, 97, 108, 116, 101, 100, 95, 95], salt)
+			Local tempStringArray:= S2A(tempString, binary)
+			Local cipherBlocks:Int[][] = RawEncrypt(tempStringArray, keyIv[0], keyIv[1])
+			cipherBlocks = CombineArrays([saltBlock], cipherBlocks)
+			Return EncodeBase64(cipherBlocks)
+		Catch exception:AESException
+		End
+		Return ""
 	End
 
 	Function Decode:String(tempString:String, pass:string, binary:Bool = False)
 		'tempString, password in plainText
-		Local cryptArray:= DecodeBase64(tempString)
-		Local salt:= cryptArray[8 .. 16]
-		Local pbe:= OpenSSLKey(S2A(pass, binary), salt)
-
-		'Take off the Salted__FFeeddcc
-		cryptArray = cryptArray[16 .. cryptArray.Length]
-		tempString = RawDecrypt(cryptArray, pbe[0], pbe[1], binary)
-		Return tempString
+		Try
+			Local cryptArray:= DecodeBase64(tempString)
+			Local salt:= cryptArray[8 .. 16]
+			Local pbe:= OpenSSLKey(S2A(pass, binary), salt)
+	
+			'Take off the Salted__FFeeddcc
+			cryptArray = cryptArray[16 .. cryptArray.Length]
+			tempString = RawDecrypt(cryptArray, pbe[0], pbe[1], binary)
+			Return tempString
+		Catch exception:AESException
+		End
+		Return ""
 	End
 	
 	'helper functions for dealing with arrays
